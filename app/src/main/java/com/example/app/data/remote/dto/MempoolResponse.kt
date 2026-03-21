@@ -1,9 +1,4 @@
 package com.example.app.data.remote.dto
 
-import com.google.gson.annotations.SerializedName
-
-data class MempoolDifficultyResponse(
-    @SerializedName("difficulty") val difficulty: Double,
-    @SerializedName("progressPercent") val progressPercent: Double,
-    @SerializedName("difficultyChange") val difficultyChange: Double
-)
+// blockchain.info/q/getdifficulty gibt die Difficulty direkt als Double zurück (plain text)
+// Kein DTO nötig — wird direkt als Double geparst

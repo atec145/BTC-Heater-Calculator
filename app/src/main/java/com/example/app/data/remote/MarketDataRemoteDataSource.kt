@@ -1,20 +1,20 @@
 package com.example.app.data.remote
 
 import com.example.app.data.remote.api.AwattarApi
+import com.example.app.data.remote.api.BlockchainInfoApi
 import com.example.app.data.remote.api.CoinGeckoApi
-import com.example.app.data.remote.api.MempoolApi
 import com.example.app.domain.model.HourlyPrice
 import com.example.app.domain.model.MarketData
 import javax.inject.Inject
 
 class MarketDataRemoteDataSource @Inject constructor(
     private val awattarApi: AwattarApi,
-    private val mempoolApi: MempoolApi,
+    private val blockchainInfoApi: BlockchainInfoApi,
     private val coinGeckoApi: CoinGeckoApi
 ) {
     suspend fun fetchMarketData(heizolPreis: Double): MarketData {
         val awattar = awattarApi.getMarketData()
-        val difficulty = mempoolApi.getDifficultyAdjustment()
+        val difficulty = blockchainInfoApi.getDifficulty()
         val coinGecko = coinGeckoApi.getPrice()
 
         val now = System.currentTimeMillis()
@@ -38,7 +38,7 @@ class MarketDataRemoteDataSource @Inject constructor(
             currentStrompreisEurKwh = currentPrice,
             hourlyPrices = hourlyPrices,
             btcPriceEur = btcPrice,
-            networkDifficulty = difficulty.difficulty,
+            networkDifficulty = difficulty,
             heizolPreisEurLiter = heizolPreis,
             lastUpdated = now / 1000
         )

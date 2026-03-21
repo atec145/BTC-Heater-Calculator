@@ -1,8 +1,8 @@
 package com.example.app.di
 
 import com.example.app.data.remote.api.AwattarApi
+import com.example.app.data.remote.api.BlockchainInfoApi
 import com.example.app.data.remote.api.CoinGeckoApi
-import com.example.app.data.remote.api.MempoolApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -39,12 +40,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    @Named("mempool")
-    fun provideMempoolRetrofit(client: OkHttpClient): Retrofit =
+    @Named("blockchain")
+    fun provideBlockchainRetrofit(client: OkHttpClient): Retrofit =
         Retrofit.Builder()
-            .baseUrl("https://mempool.space/")
+            .baseUrl("https://blockchain.info/")
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(ScalarsConverterFactory.create())
             .build()
 
     @Provides
@@ -64,8 +65,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideMempoolApi(@Named("mempool") retrofit: Retrofit): MempoolApi =
-        retrofit.create(MempoolApi::class.java)
+    fun provideBlockchainInfoApi(@Named("blockchain") retrofit: Retrofit): BlockchainInfoApi =
+        retrofit.create(BlockchainInfoApi::class.java)
 
     @Provides
     @Singleton
