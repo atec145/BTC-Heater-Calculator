@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.app.domain.model.HourlyPrice
 import java.util.Calendar
 
@@ -30,49 +28,34 @@ fun PriceBarChart(
     val lineColor = MaterialTheme.colorScheme.outline
     val labelColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
 
-    // Nur die nächsten 24h ab Mitternacht heute
-    val todayMidnight = remember {
-        Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }.timeInMillis / 1000
-    }
-    val currentHour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
-
-    val todayPrices = remember(prices) {
-        prices
-            .filter { it.epochStart >= todayMidnight && it.epochStart < todayMidnight + 86400 }
-            .sortedBy { it.epochStart }
-    }
-
-    val displayPrices = todayPrices.ifEmpty { prices.take(24) }
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val currentDayOfYear = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
 
     Canvas(
         modifier = modifier
             .fillMaxWidth()
             .height(160.dp)
     ) {
-        if (displayPrices.isEmpty()) return@Canvas
+        if (prices.isEmpty()) return@Canvas
 
         val labelHeightPx = 36f
         val chartHeight = size.height - labelHeightPx
-        val maxPrice = displayPrices.maxOf { it.priceEurKwh }.coerceAtLeast(0.001)
-        val barWidth = size.width / displayPrices.size
-        val padding = barWidth * 0.12f
+        val maxPrice = prices.maxOf { it.priceEurKwh }.coerceAtLeast(0.001)
+        val barWidth = size.width / prices.size
+        val padding = (barWidth * 0.1f).coerceAtMost(6f)
 
         val paint = android.graphics.Paint().apply {
             color = labelColor
-            textSize = 28f
+            textSize = 26f
             textAlign = android.graphics.Paint.Align.CENTER
             isAntiAlias = true
         }
 
-        displayPrices.forEachIndexed { i, point ->
+        prices.forEachIndexed { i, point ->
             val cal = Calendar.getInstance().apply { timeInMillis = point.epochStart * 1000 }
             val hour = cal.get(Calendar.HOUR_OF_DAY)
-            val isCurrent = hour == currentHour
+            val dayOfYear = cal.get(Calendar.DAY_OF_YEAR)
+            val isCurrent = hour == currentHour && dayOfYear == currentDayOfYear
 
             val barHeight = (point.priceEurKwh / maxPrice * chartHeight).toFloat().coerceAtLeast(2f)
             val color = when {
@@ -87,12 +70,12 @@ fun PriceBarChart(
                 size = Size(barWidth - padding * 2, barHeight)
             )
 
-            // X-Achsen-Label alle 6 Stunden (0, 6, 12, 18) + letzte Stunde
+            // Label bei 0h, 6h, 12h, 18h
             if (hour % 6 == 0) {
                 drawIntoCanvas { canvas ->
                     canvas.nativeCanvas.drawText(
                         "${hour}h",
-                        i * barWidth + barWidth / 2,
+                        i * barWidth + barWidth / 2f,
                         size.height - 4f,
                         paint
                     )
