@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.app.domain.model.ProfitabilityResult
+import com.example.app.domain.model.SaleMode
 import com.example.app.presentation.components.PriceBarChart
 import java.util.Locale
 
@@ -135,6 +136,23 @@ private fun DashboardContent(uiState: HomeUiState, modifier: Modifier = Modifier
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Hodl-Hinweis wenn Zielpreis unter aktuellem Kurs
+        val saleMode = uiState.saleMode
+        if (saleMode is SaleMode.Hodl && saleMode.targetPriceEur < uiState.btcPriceEur && uiState.btcPriceEur > 0) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+            ) {
+                Text(
+                    text = "Hinweis: Ziel-BTC-Preis (%.0f €) liegt unter aktuellem Kurs (%.0f €)".format(
+                        saleMode.targetPriceEur, uiState.btcPriceEur
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+
         // Hauptentscheidung
         DecisionCard(result)
 

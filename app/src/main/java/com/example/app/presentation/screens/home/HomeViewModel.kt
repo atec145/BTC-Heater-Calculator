@@ -54,8 +54,11 @@ class HomeViewModel @Inject constructor(
                     val activeMiners = miners.filter { it.isActive }
 
                     val result = if (activeMiners.isEmpty()) null else {
-                        calculateProfitability(miners, market, saleMode, boilerEfficiency)
+                        calculateProfitability(miners, market, saleMode, boilerEfficiency).getOrNull()
                     }
+                    val calcError = if (activeMiners.isNotEmpty()) {
+                        calculateProfitability(miners, market, saleMode, boilerEfficiency).exceptionOrNull()?.message
+                    } else null
 
                     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val lastUpdated = timeFormat.format(Date(market.lastUpdated * 1000))
@@ -63,7 +66,7 @@ class HomeViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            error = null,
+                            error = calcError,
                             result = result,
                             hourlyPrices = market.hourlyPrices,
                             saleMode = saleMode,

@@ -13,7 +13,7 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         market: MarketData,
         saleMode: SaleMode,
         boilerEfficiency: Double // z.B. 0.85
-    ): ProfitabilityResult {
+    ): Result<ProfitabilityResult> {
         val activeMiners = miners.filter { it.isActive }
         val totalHashrateThs = activeMiners.sumOf { it.hashrateThs }
         val totalWatt = activeMiners.sumOf { it.watt }
@@ -22,6 +22,9 @@ class CalculateProfitabilityUseCase @Inject constructor() {
             is SaleMode.Instant -> market.btcPriceEur
             is SaleMode.Hodl -> saleMode.targetPriceEur
         }
+
+        if (btcPrice <= 0) return Result.failure(IllegalStateException("BTC-Preis ist 0 oder ungültig"))
+        if (market.networkDifficulty <= 0) return Result.failure(IllegalStateException("Network Difficulty ist 0 oder ungültig"))
 
         // tägl. BTC = (Hashrate in H/s × 86400) / (Difficulty × 2^32) × 3.125
         val hashrateHs = totalHashrateThs * 1_000_000_000_000.0
@@ -48,15 +51,17 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         val breakEven = if (kwhPerDay > 0) (eurPerDay / kwhPerDay) + heizölKostenEurKwh else 0.0
         val delta = breakEven - market.currentStrompreisEurKwh
 
-        return ProfitabilityResult(
-            isWorthIt = delta > 0,
-            breakEvenStrompreisEurKwh = breakEven,
-            currentStrompreisEurKwh = market.currentStrompreisEurKwh,
-            deltaEurKwh = delta,
-            expectedBtcPerDay = btcPerDay,
-            expectedEurPerDay = eurPerDay,
-            stromkostenEurPerDay = stromkostenPerDay,
-            heizungskostenOelEurKwh = heizölKostenEurKwh
+        return Result.success(
+            ProfitabilityResult(
+                isWorthIt = delta > 0,
+                breakEvenStrompreisEurKwh = breakEven,
+                currentStrompreisEurKwh = market.currentStrompreisEurKwh,
+                deltaEurKwh = delta,
+                expectedBtcPerDay = btcPerDay,
+                expectedEurPerDay = eurPerDay,
+                stromkostenEurPerDay = stromkostenPerDay,
+                heizungskostenOelEurKwh = heizölKostenEurKwh
+            )
         )
     }
 }
