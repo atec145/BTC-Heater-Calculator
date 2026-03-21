@@ -94,8 +94,10 @@ fun SettingsScreen(
             HeatingSection(
                 oilPriceInput = uiState.oilPriceInput,
                 boilerEfficiencyInput = uiState.boilerEfficiencyInput,
+                netzaufschlagInput = uiState.netzaufschlagInput,
                 onOilPriceChanged = { viewModel.onOilPriceChanged(it) },
-                onBoilerEfficiencyChanged = { viewModel.onBoilerEfficiencyChanged(it) }
+                onBoilerEfficiencyChanged = { viewModel.onBoilerEfficiencyChanged(it) },
+                onNetzaufschlagChanged = { viewModel.onNetzaufschlagChanged(it) }
             )
 
             Button(
@@ -202,11 +204,23 @@ private fun SaleModeSection(
 private fun HeatingSection(
     oilPriceInput: String,
     boilerEfficiencyInput: String,
+    netzaufschlagInput: String,
     onOilPriceChanged: (String) -> Unit,
-    onBoilerEfficiencyChanged: (String) -> Unit
+    onBoilerEfficiencyChanged: (String) -> Unit,
+    onNetzaufschlagChanged: (String) -> Unit
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Strompreis", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            OutlinedTextField(
+                value = netzaufschlagInput,
+                onValueChange = onNetzaufschlagChanged,
+                label = { Text("Netzaufschlag (ct/kWh, z.B. 9,85)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = { Text("Netzgebühren + Steuern + Abgaben") }
+            )
             Text("Ölheizung", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
                 value = oilPriceInput,

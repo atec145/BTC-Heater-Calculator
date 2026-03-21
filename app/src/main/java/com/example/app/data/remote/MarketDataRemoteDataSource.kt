@@ -12,7 +12,7 @@ class MarketDataRemoteDataSource @Inject constructor(
     private val blockchainInfoApi: BlockchainInfoApi,
     private val coinGeckoApi: CoinGeckoApi
 ) {
-    suspend fun fetchMarketData(heizolPreis: Double): MarketData {
+    suspend fun fetchMarketData(heizolPreis: Double, netzaufschlagEurKwh: Double = 0.0985): MarketData {
         val awattar = awattarApi.getMarketData()
         val difficulty = blockchainInfoApi.getDifficulty()
         val coinGecko = coinGeckoApi.getPrice()
@@ -21,7 +21,7 @@ class MarketDataRemoteDataSource @Inject constructor(
         val hourlyPrices = awattar.data.map { point ->
             HourlyPrice(
                 epochStart = point.startTimestamp / 1000,
-                priceEurKwh = point.marketpriceEurMwh / 1000.0
+                priceEurKwh = point.marketpriceEurMwh / 1000.0 + netzaufschlagEurKwh
             )
         }.sortedBy { it.epochStart }
 

@@ -13,6 +13,7 @@ class MarketDataRepositoryImpl @Inject constructor(
 
     override suspend fun getMarketData(): Result<MarketData> = runCatching {
         val oilPrice = minerConfigRepository.getOilPrice()
-        remoteDataSource.fetchMarketData(oilPrice)
+        val netzaufschlagEurKwh = minerConfigRepository.getNetzaufschlagCtKwh() / 100.0
+        remoteDataSource.fetchMarketData(oilPrice, netzaufschlagEurKwh)
     }
 }
