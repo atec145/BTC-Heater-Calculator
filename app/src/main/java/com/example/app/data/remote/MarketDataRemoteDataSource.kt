@@ -19,9 +19,12 @@ class MarketDataRemoteDataSource @Inject constructor(
 
         val now = System.currentTimeMillis()
         val hourlyPrices = awattar.data.map { point ->
+            // Awattar-Formel: (EPEX [€/kWh] × 1,03 + 0,015) × 1,20 + Netzaufschlag
+            val epexEurKwh = point.marketpriceEurMwh / 1000.0
+            val awattarPrice = (epexEurKwh * 1.03 + 0.015) * 1.20
             HourlyPrice(
                 epochStart = point.startTimestamp / 1000,
-                priceEurKwh = point.marketpriceEurMwh / 1000.0 + netzaufschlagEurKwh
+                priceEurKwh = awattarPrice + netzaufschlagEurKwh
             )
         }.sortedBy { it.epochStart }
 
