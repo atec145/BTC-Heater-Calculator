@@ -2,93 +2,96 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Android App Starter Kit
+## Project Overview
 
-> A Kotlin + Jetpack Compose template with an AI-powered development workflow. Feature tracking via GitHub Issues.
-
-## Tech Stack
-
-- **Language:** Kotlin + Coroutines
-- **UI:** Jetpack Compose + Material 3
-- **Architecture:** MVVM + Clean Architecture
-- **Auth + Database:** Firebase (Auth, Firestore, Storage)
-- **Dependency Injection:** Hilt
-- **Navigation:** Navigation Compose
-- **Local Cache:** Room
-- **Image Loading:** Coil
-- **CI/CD:** GitHub Actions → Play Store
-
-## Project Structure
-
-```
-app/src/main/java/com/example/app/
-  data/               Data layer
-    local/            Room database + DAOs
-    remote/           Firebase data sources
-    repository/       Repository implementations
-  domain/             Business logic
-    model/            Data classes / entities
-    usecase/          Use cases (one action per class)
-    repository/       Repository interfaces (abstractions)
-  presentation/       UI layer
-    screens/          Screen Composables + ViewModels
-    components/       Reusable Composables
-    theme/            Material Theme (Color, Typography, Shape)
-  di/                 Hilt modules
-docs/
-  PRD.md              Product Requirements Document
-.github/
-  ISSUE_TEMPLATE/     GitHub Issue templates for features + bugs
-```
-
-## Development Workflow
-
-1. `/requirements` — Describe feature → creates GitHub Issue with spec
-2. `/architecture` — Design tech decisions → updates issue with design
-3. `/android-dev` — Build Kotlin/Compose implementation
-4. `/qa` — Test + security audit → updates issue to In Review
-5. `/deploy` — Build release + Play Store upload
-
-## Feature Tracking via GitHub Issues
-
-Features live as GitHub Issues, not local files:
-
-- **Labels:** `status:planned`, `status:in-progress`, `status:in-review`, `status:deployed`, `type:feature`, `type:bug`
-- **Commit format:** `feat(#12): description` (referencing issue number)
-- Skills create and update issues automatically via `gh` CLI
-- You can also create issues manually on github.com — skills will pick them up
-
-Useful commands:
-```bash
-gh issue list --label "type:feature"          # All features
-gh issue list --label "status:in-progress"    # Active work
-gh issue view <number>                         # Read a specific issue
-```
+Android app (Kotlin + Jetpack Compose) that shows whether running a Bitcoin miner as a space heater is profitable compared to an oil-fired boiler. Fetches live data from three public APIs, calculates a break-even electricity price, and displays an hourly price chart color-coded against that threshold.
 
 ## Build Commands
 
 ```bash
 ./gradlew assembleDebug          # Debug build
-./gradlew assembleRelease        # Release build
+./gradlew assembleRelease        # Release build (minified)
+./gradlew lint                   # Lint check (must pass before commit)
 ./gradlew test                   # Unit tests
 ./gradlew connectedAndroidTest   # Instrumented tests (emulator required)
-./gradlew lint                   # Lint
 ```
 
-## Firebase Setup
+No `google-services.json` is needed — Firebase was removed from this project.
 
-Firebase is not active until configured:
+## Architecture
 
-1. Create project at console.firebase.google.com
-2. Add an Android app (use your package name)
-3. Download `google-services.json` → place in `app/`
-4. Enable Authentication and Firestore in Firebase console
-5. `google-services.json` is in `.gitignore` — never commit it
+Clean Architecture with three strict layers. Data flows one way: Presentation → Domain → Data.
 
-## Path-Scoped Rules
+```
+domain/        Pure Kotlin — no Android imports
+  model/       MinerConfig, MarketData, HourlyPrice, SaleMode, ProfitabilityResult
+  repository/  Interfaces only (MarketDataRepository, MinerConfigRepository)
+  usecase/     CalculateProfitabilityUseCase — the core business logic
 
-Detailed rules in `.claude/rules/`, auto-applied by file path:
-- `general.md` — project init, GitHub Issues workflow, git conventions
-- `android.md` — Kotlin, Compose, MVVM patterns (`app/src/**`)
-- `firebase.md` — Firestore, Auth, Security Rules
-- `security.md` — secrets management, ProGuard, API keys
+data/
+  remote/      Retrofit APIs: AwattarApi, MempoolApi, CoinGeckoApi
+               MarketDataRemoteDataSource assembles all three into a MarketData object
+  local/       Room: MinerConfigEntity, MinerConfigDao, AppDatabase
+  repository/  MarketDataRepositoryImpl, MinerConfigRepositoryImpl (uses SharedPreferences for settings)
+
+presentation/
+  screens/home/        Dashboard — HomeViewModel, HomeScreen, HomeUiState
+  screens/settings/   Miner config + sale mode + oil settings — SettingsViewModel, SettingsScreen
+  components/         PriceBarChart (pure Canvas, no external chart lib)
+  navigation/         AppNavigation with Screen sealed class (Home, Settings)
+
+di/
+  NetworkModule        Retrofit instances (one per base URL, @Named qualifier)
+  DatabaseModule       Room + SharedPreferences
+  RepositoryModule     @Binds interfaces to implementations
+```
+
+## Key Business Logic
+
+**Break-even electricity price** (`CalculateProfitabilityUseCase`):
+- `btcPerDay = (hashrate_Hs × 86400) / (difficulty × 2^32) × 3.125`
+- `breakEven = (eurPerDay / kWhPerDay) + oilBoilerCostPerKwh`
+- `isWorthIt = breakEven > currentElectricityPrice`
+- Oil cost: `heizölPreis / (10 kWh/L × boilerEfficiency)`
+
+**Sale modes** (`SaleMode` sealed class):
+- `Instant` — uses live BTC/EUR from CoinGecko
+- `Hodl(targetPriceEur)` — uses user-entered target price
+
+**API endpoints:**
+- Awattar AT: `https://api.awattar.at/v1/marketdata` — hourly prices in €/MWh (÷1000 → €/kWh)
+- mempool.space: `https://mempool.space/api/v1/difficulty-adjustment`
+- CoinGecko: `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur`
+
+**Heizölpreis** is entered manually by the user (no scraping in MVP). Stored in SharedPreferences, default 1.10 €/L.
+
+## Tech Stack
+
+- **Language:** Kotlin + Coroutines
+- **UI:** Jetpack Compose + Material 3
+- **DI:** Hilt (`@HiltViewModel`, `@Binds`, `@Named` for multiple Retrofit instances)
+- **Network:** Retrofit 2 + OkHttp + Gson (one Retrofit instance per base URL)
+- **Local storage:** Room (miner configs) + SharedPreferences (sale mode, oil price, boiler efficiency)
+- **No Firebase** — removed; app uses only public APIs
+
+## Development Workflow
+
+1. `/requirements` — Describe feature → creates GitHub Issue with spec
+2. `/architecture` — Design tech decisions → updates issue
+3. `/android-dev` — Build Kotlin/Compose implementation
+4. `/qa` — Test + security audit
+5. `/deploy` — Build release APK/AAB
+
+Feature tracking via GitHub Issues. Commit format: `feat(#12): description`.
+
+```bash
+gh issue list --label "type:feature"
+gh issue view <number>
+```
+
+## Constraints
+
+- Max 2 miners configurable
+- Miner fields validated: hashrate > 0, watt > 0
+- When no miners are active, dashboard shows "Kein Miner aktiv" instead of calculation
+- Awattar fallback: if current hour not found in response, use last available price
