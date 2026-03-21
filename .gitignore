@@ -1,0 +1,34 @@
+# Android
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+
+# Firebase — NEVER commit these
+google-services.json
+firebase-credentials.json
+
+# Signing
+*.jks
+*.keystore
+keystore.properties
+
+# Local environment
+local.properties.example.filled
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# Node (if any tooling)
+node_modules/

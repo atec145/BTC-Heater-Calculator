@@ -1,0 +1,14 @@
+# Copy this file to local.properties and fill in your values
+# local.properties is in .gitignore — never commit it
+
+# Android SDK (set automatically by Android Studio)
+sdk.dir=/path/to/Android/Sdk
+
+# App signing (for release builds)
+KEYSTORE_PATH=../your-keystore.jks
+KEYSTORE_PASSWORD=your_keystore_password
+KEY_ALIAS=your_key_alias
+KEY_PASSWORD=your_key_password
+
+# Add any additional API keys here:
+# MY_API_KEY=your_api_key_here

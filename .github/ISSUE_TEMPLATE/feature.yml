@@ -1,0 +1,44 @@
+name: Feature
+description: New feature or enhancement
+labels: ["type:feature", "status:planned"]
+body:
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: As a [user], I want to [action] so that [benefit].
+      placeholder: "As a user, I want to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Specific, testable criteria that must be met.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ] Loading state shown during async operations
+        - [ ] Error state handles failures gracefully
+        - [ ] Empty state shown when there is no data
+    validations:
+      required: true
+
+  - type: textarea
+    id: edge-cases
+    attributes:
+      label: Edge Cases
+      placeholder: "Offline behavior, empty input, concurrent actions..."
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      placeholder: "What this feature explicitly does NOT include..."
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      placeholder: "Design references, open questions, dependencies on other features..."

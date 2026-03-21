@@ -1,0 +1,42 @@
+name: Bug Report
+description: Something isn't working correctly
+labels: ["type:bug", "status:planned"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      placeholder: "A clear description of the bug..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / Android Version
+      placeholder: "e.g. Pixel 7, Android 14"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs
+      description: Paste any crash logs or error messages (no sensitive data)
+      render: shell
