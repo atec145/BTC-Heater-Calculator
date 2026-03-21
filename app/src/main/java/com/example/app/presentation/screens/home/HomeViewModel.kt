@@ -47,6 +47,7 @@ class HomeViewModel @Inject constructor(
 
             val saleMode = minerConfigRepository.getSaleMode()
             val boilerEfficiency = minerConfigRepository.getBoilerEfficiency()
+            val minerWaermeeffizienz = minerConfigRepository.getMinerWaermeeffizienz()
 
             marketDataRepository.getMarketData()
                 .onSuccess { market ->
@@ -54,10 +55,10 @@ class HomeViewModel @Inject constructor(
                     val activeMiners = miners.filter { it.isActive }
 
                     val result = if (activeMiners.isEmpty()) null else {
-                        calculateProfitability(miners, market, saleMode, boilerEfficiency).getOrNull()
+                        calculateProfitability(miners, market, saleMode, boilerEfficiency, minerWaermeeffizienz).getOrNull()
                     }
                     val calcError = if (activeMiners.isNotEmpty()) {
-                        calculateProfitability(miners, market, saleMode, boilerEfficiency).exceptionOrNull()?.message
+                        calculateProfitability(miners, market, saleMode, boilerEfficiency, minerWaermeeffizienz).exceptionOrNull()?.message
                     } else null
 
                     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())

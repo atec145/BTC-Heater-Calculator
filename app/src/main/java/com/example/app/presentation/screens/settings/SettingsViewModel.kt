@@ -28,6 +28,7 @@ class SettingsViewModel @Inject constructor(
             val oilPrice = repository.getOilPrice()
             val efficiency = repository.getBoilerEfficiency()
             val netzaufschlag = repository.getNetzaufschlagCtKwh()
+            val waermeeffizienz = repository.getMinerWaermeeffizienz()
 
             _uiState.update {
                 it.copy(
@@ -36,7 +37,8 @@ class SettingsViewModel @Inject constructor(
                     hodlTargetInput = if (saleMode is SaleMode.Hodl) saleMode.targetPriceEur.toString() else "",
                     oilPriceInput = "%.2f".format(oilPrice),
                     boilerEfficiencyInput = "%.0f".format(efficiency * 100),
-                    netzaufschlagInput = "%.2f".format(netzaufschlag)
+                    netzaufschlagInput = "%.2f".format(netzaufschlag),
+                    minerWaermeeffizienzInput = "%.0f".format(waermeeffizienz * 100)
                 )
             }
         }
@@ -75,6 +77,10 @@ class SettingsViewModel @Inject constructor(
 
     fun onNetzaufschlagChanged(value: String) {
         _uiState.update { it.copy(netzaufschlagInput = value) }
+    }
+
+    fun onMinerWaermeeffizienzChanged(value: String) {
+        _uiState.update { it.copy(minerWaermeeffizienzInput = value) }
     }
 
     fun showAddMinerDialog() {
@@ -123,6 +129,9 @@ class SettingsViewModel @Inject constructor(
             }
             _uiState.value.netzaufschlagInput.toDoubleOrNull()?.let {
                 repository.saveNetzaufschlagCtKwh(it)
+            }
+            _uiState.value.minerWaermeeffizienzInput.toDoubleOrNull()?.let {
+                repository.saveMinerWaermeeffizienz(it / 100.0)
             }
             _uiState.update { it.copy(isSaved = true) }
         }

@@ -95,9 +95,11 @@ fun SettingsScreen(
                 oilPriceInput = uiState.oilPriceInput,
                 boilerEfficiencyInput = uiState.boilerEfficiencyInput,
                 netzaufschlagInput = uiState.netzaufschlagInput,
+                minerWaermeeffizienzInput = uiState.minerWaermeeffizienzInput,
                 onOilPriceChanged = { viewModel.onOilPriceChanged(it) },
                 onBoilerEfficiencyChanged = { viewModel.onBoilerEfficiencyChanged(it) },
-                onNetzaufschlagChanged = { viewModel.onNetzaufschlagChanged(it) }
+                onNetzaufschlagChanged = { viewModel.onNetzaufschlagChanged(it) },
+                onMinerWaermeeffizienzChanged = { viewModel.onMinerWaermeeffizienzChanged(it) }
             )
 
             Button(
@@ -205,9 +207,11 @@ private fun HeatingSection(
     oilPriceInput: String,
     boilerEfficiencyInput: String,
     netzaufschlagInput: String,
+    minerWaermeeffizienzInput: String,
     onOilPriceChanged: (String) -> Unit,
     onBoilerEfficiencyChanged: (String) -> Unit,
-    onNetzaufschlagChanged: (String) -> Unit
+    onNetzaufschlagChanged: (String) -> Unit,
+    onMinerWaermeeffizienzChanged: (String) -> Unit
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -233,10 +237,20 @@ private fun HeatingSection(
             OutlinedTextField(
                 value = boilerEfficiencyInput,
                 onValueChange = onBoilerEfficiencyChanged,
-                label = { Text("Wirkungsgrad (%, Standard: 85)") },
+                label = { Text("Kesselwirkungsgrad (%, Standard: 85)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
+            )
+            Text("Miner als Heizung", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            OutlinedTextField(
+                value = minerWaermeeffizienzInput,
+                onValueChange = onMinerWaermeeffizienzChanged,
+                label = { Text("Wärmeeffizienz Miner (%, Standard: 85)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                supportingText = { Text("Anteil der Elektrizität der als Wärme im Puffer ankommt") }
             )
         }
     }

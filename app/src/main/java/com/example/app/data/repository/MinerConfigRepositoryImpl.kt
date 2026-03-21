@@ -68,6 +68,13 @@ class MinerConfigRepositoryImpl @Inject constructor(
         prefs.edit().putFloat(KEY_NETZAUFSCHLAG, ct.toFloat()).apply()
     }
 
+    override suspend fun getMinerWaermeeffizienz(): Double =
+        prefs.getFloat(KEY_MINER_WAERMEEFFIZIENZ, 0.85f).toDouble()
+
+    override suspend fun saveMinerWaermeeffizienz(efficiency: Double) {
+        prefs.edit().putFloat(KEY_MINER_WAERMEEFFIZIENZ, efficiency.toFloat()).apply()
+    }
+
     private fun MinerConfigEntity.toDomain() = MinerConfig(
         id = id, label = label, hashrateThs = hashrateThs, watt = watt, isActive = isActive
     )
@@ -82,5 +89,6 @@ class MinerConfigRepositoryImpl @Inject constructor(
         private const val KEY_OIL_PRICE = "oil_price"
         private const val KEY_BOILER_EFFICIENCY = "boiler_efficiency"
         private const val KEY_NETZAUFSCHLAG = "netzaufschlag_ct_kwh"
+        private const val KEY_MINER_WAERMEEFFIZIENZ = "miner_waermeeffizienz"
     }
 }

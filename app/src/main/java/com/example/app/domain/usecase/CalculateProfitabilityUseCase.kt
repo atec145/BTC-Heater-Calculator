@@ -12,7 +12,8 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         miners: List<MinerConfig>,
         market: MarketData,
         saleMode: SaleMode,
-        boilerEfficiency: Double // z.B. 0.85
+        boilerEfficiency: Double,     // z.B. 0.85
+        minerWaermeeffizienz: Double  // z.B. 0.85 — Anteil der Elektrizität der als Wärme im Puffer ankommt
     ): Result<ProfitabilityResult> {
         val activeMiners = miners.filter { it.isActive }
         val totalHashrateThs = activeMiners.sumOf { it.hashrateThs }
@@ -51,6 +52,19 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         val breakEven = if (kwhPerDay > 0) (eurPerDay / kwhPerDay) + heizölKostenEurKwh else 0.0
         val delta = breakEven - market.currentStrompreisEurKwh
 
+        // Profitable Stunden: Stunden in denen Strompreis < Break-Even
+        val profitableHours = market.hourlyPrices.count { it.priceEurKwh < breakEven }
+
+        // Thermische Energie nur für profitable Stunden
+        val kwhPerHour = totalWatt / 1000.0
+        val waermeEnergyKwh = kwhPerHour * profitableHours * minerWaermeeffizienz
+
+        // Heizöl-Äquivalent: Wärme die der Miner liefert, würde X Liter Öl ersetzen
+        // Öl hat 10 kWh/L × Kessenwirkungsgrad → effektive Wärme pro Liter
+        val oilLiter = if (boilerEfficiency > 0) waermeEnergyKwh / (10.0 * boilerEfficiency) else 0.0
+        val oilEurSaved = oilLiter * market.heizolPreisEurLiter
+        val co2KgAvoided = oilLiter * 2.68
+
         return Result.success(
             ProfitabilityResult(
                 isWorthIt = delta > 0,
@@ -60,7 +74,12 @@ class CalculateProfitabilityUseCase @Inject constructor() {
                 expectedBtcPerDay = btcPerDay,
                 expectedEurPerDay = eurPerDay,
                 stromkostenEurPerDay = stromkostenPerDay,
-                heizungskostenOelEurKwh = heizölKostenEurKwh
+                heizungskostenOelEurKwh = heizölKostenEurKwh,
+                profitableHoursToday = profitableHours,
+                waermeEnergyKwhProfitable = waermeEnergyKwh,
+                oilLiterAvoided = oilLiter,
+                oilEurSaved = oilEurSaved,
+                co2KgAvoided = co2KgAvoided
             )
         )
     }

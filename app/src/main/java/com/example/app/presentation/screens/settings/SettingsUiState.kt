@@ -11,6 +11,7 @@ data class SettingsUiState(
     val oilPriceInput: String = "1.10",
     val boilerEfficiencyInput: String = "85",
     val netzaufschlagInput: String = "9.85",
+    val minerWaermeeffizienzInput: String = "85",
     val isSaved: Boolean = false,
     // Dialog-Zustand für Miner hinzufügen/bearbeiten
     val editingMiner: MinerConfig? = null,

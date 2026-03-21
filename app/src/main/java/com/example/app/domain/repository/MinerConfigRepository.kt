@@ -16,4 +16,6 @@ interface MinerConfigRepository {
     suspend fun saveBoilerEfficiency(efficiency: Double)
     suspend fun getNetzaufschlagCtKwh(): Double
     suspend fun saveNetzaufschlagCtKwh(ct: Double)
+    suspend fun getMinerWaermeeffizienz(): Double
+    suspend fun saveMinerWaermeeffizienz(efficiency: Double)
 }

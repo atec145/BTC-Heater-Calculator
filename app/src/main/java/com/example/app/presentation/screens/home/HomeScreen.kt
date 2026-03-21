@@ -191,7 +191,7 @@ private fun DecisionCard(result: ProfitabilityResult) {
 private fun MetricsCard(result: ProfitabilityResult) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Tageskennzahlen", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("Mining-Kennzahlen", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
             HorizontalDivider()
             MetricRow("Erw. BTC/Tag", "%.8f BTC".format(result.expectedBtcPerDay))
             MetricRow("Erw. Ertrag/Tag", "%.2f €".format(result.expectedEurPerDay))
@@ -199,6 +199,16 @@ private fun MetricsCard(result: ProfitabilityResult) {
             MetricRow("Nettoertrag/Tag", "%.2f €".format(result.expectedEurPerDay - result.stromkostenEurPerDay))
             HorizontalDivider()
             MetricRow("Ölheizung kostet", "%.4f €/kWh".format(result.heizungskostenOelEurKwh))
+
+            if (result.profitableHoursToday > 0) {
+                HorizontalDivider()
+                Text("Heizleistung heute", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                MetricRow("Profitable Stunden", "${result.profitableHoursToday} h")
+                MetricRow("Wärme in Puffer", "%.1f kWh".format(result.waermeEnergyKwhProfitable))
+                MetricRow("Heizöl ersetzt", "%.2f L".format(result.oilLiterAvoided))
+                MetricRow("Ersparnis vs. Öl", "%.2f €".format(result.oilEurSaved))
+                MetricRow("CO₂ eingespart", "%.2f kg".format(result.co2KgAvoided))
+            }
         }
     }
 }

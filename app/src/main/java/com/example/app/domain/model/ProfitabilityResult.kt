@@ -8,5 +8,11 @@ data class ProfitabilityResult(
     val expectedBtcPerDay: Double,
     val expectedEurPerDay: Double,
     val stromkostenEurPerDay: Double,
-    val heizungskostenOelEurKwh: Double
+    val heizungskostenOelEurKwh: Double,
+    // Nur für profitable Stunden (strompreis < breakEven)
+    val profitableHoursToday: Int,
+    val waermeEnergyKwhProfitable: Double, // thermische Energie die in den Puffer geht
+    val oilLiterAvoided: Double,           // Liter Heizöl die ersetzt werden
+    val oilEurSaved: Double,               // Ersparnis vs. Ölheizung
+    val co2KgAvoided: Double               // CO₂-Einsparung (2,68 kg/L Heizöl)
 )
