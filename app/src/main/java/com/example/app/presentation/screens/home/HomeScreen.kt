@@ -156,13 +156,13 @@ private fun DashboardContent(uiState: HomeUiState, modifier: Modifier = Modifier
         // Hauptentscheidung
         DecisionCard(result)
 
-        // Kennzahlen
-        MetricsCard(result)
-
         // Tagesübersicht Strompreise
         if (uiState.hourlyPrices.isNotEmpty()) {
             ChartCard(uiState, result)
         }
+
+        // Kennzahlen
+        MetricsCard(result)
     }
 }
 
@@ -178,10 +178,10 @@ private fun DecisionCard(result: ProfitabilityResult) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(label, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                LabelValue("Aktuell", "%.4f €/kWh".format(result.currentStrompreisEurKwh), Color.White)
-                LabelValue("Schwelle", "%.4f €/kWh".format(result.breakEvenStrompreisEurKwh), Color.White)
+                LabelValue("Aktuell", "%.1f ct/kWh".format(result.currentStrompreisEurKwh * 100), Color.White)
+                LabelValue("Schwelle", "%.1f ct/kWh".format(result.breakEvenStrompreisEurKwh * 100), Color.White)
                 val deltaSign = if (result.deltaEurKwh >= 0) "+" else ""
-                LabelValue("Delta", "$deltaSign%.4f €/kWh".format(result.deltaEurKwh), Color.White)
+                LabelValue("Delta", "$deltaSign%.1f ct/kWh".format(result.deltaEurKwh * 100), Color.White)
             }
         }
     }
@@ -198,7 +198,7 @@ private fun MetricsCard(result: ProfitabilityResult) {
             MetricRow("Stromkosten/Tag", "%.2f €".format(result.stromkostenEurPerDay))
             MetricRow("Nettoertrag/Tag", "%.2f €".format(result.expectedEurPerDay - result.stromkostenEurPerDay))
             HorizontalDivider()
-            MetricRow("Ölheizung kostet", "%.4f €/kWh".format(result.heizungskostenOelEurKwh))
+            MetricRow("Ölheizung kostet", "%.1f ct/kWh".format(result.heizungskostenOelEurKwh * 100))
 
             if (result.profitableHoursToday > 0) {
                 HorizontalDivider()
