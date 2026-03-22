@@ -3,6 +3,7 @@ package com.example.app.di
 import com.example.app.data.remote.api.AwattarApi
 import com.example.app.data.remote.api.BlockchainInfoApi
 import com.example.app.data.remote.api.CoinGeckoApi
+import com.example.app.data.remote.api.HeizOel24Api
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -72,4 +73,19 @@ object NetworkModule {
     @Singleton
     fun provideCoinGeckoApi(@Named("coingecko") retrofit: Retrofit): CoinGeckoApi =
         retrofit.create(CoinGeckoApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("heizoel24")
+    fun provideHeizOel24Retrofit(client: OkHttpClient): Retrofit =
+        Retrofit.Builder()
+            .baseUrl("https://www.heizoel24.de/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+    @Provides
+    @Singleton
+    fun provideHeizOel24Api(@Named("heizoel24") retrofit: Retrofit): HeizOel24Api =
+        retrofit.create(HeizOel24Api::class.java)
 }

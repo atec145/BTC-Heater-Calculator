@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.app.domain.model.MinerConfig
 import com.example.app.domain.model.SaleMode
 import com.example.app.domain.repository.MinerConfigRepository
+import com.example.app.domain.usecase.FetchOilPriceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,11 +13,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val repository: MinerConfigRepository
+    private val repository: MinerConfigRepository,
+    private val fetchOilPriceUseCase: FetchOilPriceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -25,7 +30,6 @@ class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val saleMode = repository.getSaleMode()
-            val oilPrice = repository.getOilPrice()
             val efficiency = repository.getBoilerEfficiency()
             val netzaufschlag = repository.getNetzaufschlagCtKwh()
             val waermeeffizienz = repository.getMinerWaermeeffizienz()
@@ -35,7 +39,6 @@ class SettingsViewModel @Inject constructor(
                     isLoading = false,
                     saleMode = saleMode,
                     hodlTargetInput = if (saleMode is SaleMode.Hodl) saleMode.targetPriceEur.toString() else "",
-                    oilPriceInput = "%.2f".format(oilPrice),
                     boilerEfficiencyInput = "%.0f".format(efficiency * 100),
                     netzaufschlagInput = "%.2f".format(netzaufschlag),
                     minerWaermeeffizienzInput = "%.0f".format(waermeeffizienz * 100)
@@ -44,10 +47,36 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            loadOilPrice(forceRefresh = false)
+        }
+
+        viewModelScope.launch {
             repository.getMiners().collectLatest { miners ->
                 _uiState.update { it.copy(miners = miners) }
             }
         }
+    }
+
+    private suspend fun loadOilPrice(forceRefresh: Boolean) {
+        val price = fetchOilPriceUseCase(forceRefresh)
+        val isManual = repository.isOilPriceManual()
+        val fetchedAt = repository.getOilPriceFetchedAt()
+        val dateStr = if (fetchedAt > 0) {
+            SimpleDateFormat("dd.MM.yyyy", Locale.GERMAN).format(Date(fetchedAt * 1000))
+        } else ""
+
+        _uiState.update {
+            it.copy(
+                oilPriceInput = "%.2f".format(price),
+                oilPriceIsAuto = !isManual,
+                oilPriceLastFetched = dateStr,
+                oilPriceManuallyEdited = false
+            )
+        }
+    }
+
+    fun refreshOilPrice() {
+        viewModelScope.launch { loadOilPrice(forceRefresh = true) }
     }
 
     fun onSaleModeChanged(isHodl: Boolean) {
@@ -68,7 +97,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onOilPriceChanged(value: String) {
-        _uiState.update { it.copy(oilPriceInput = value) }
+        _uiState.update { it.copy(oilPriceInput = value, oilPriceManuallyEdited = true) }
     }
 
     fun onBoilerEfficiencyChanged(value: String) {
@@ -123,7 +152,13 @@ class SettingsViewModel @Inject constructor(
     fun saveSettings() {
         viewModelScope.launch {
             repository.saveSaleMode(_uiState.value.saleMode)
-            _uiState.value.oilPriceInput.toDoubleOrNull()?.let { repository.saveOilPrice(it) }
+            _uiState.value.oilPriceInput.toDoubleOrNull()?.let {
+                repository.saveOilPrice(it)
+                if (_uiState.value.oilPriceManuallyEdited) {
+                    repository.setOilPriceManual(true)
+                    _uiState.update { s -> s.copy(oilPriceIsAuto = false, oilPriceLastFetched = "") }
+                }
+            }
             _uiState.value.boilerEfficiencyInput.toDoubleOrNull()?.let {
                 repository.saveBoilerEfficiency(it / 100.0)
             }
@@ -133,7 +168,7 @@ class SettingsViewModel @Inject constructor(
             _uiState.value.minerWaermeeffizienzInput.toDoubleOrNull()?.let {
                 repository.saveMinerWaermeeffizienz(it / 100.0)
             }
-            _uiState.update { it.copy(isSaved = true) }
+            _uiState.update { it.copy(isSaved = true, oilPriceManuallyEdited = false) }
         }
     }
 }

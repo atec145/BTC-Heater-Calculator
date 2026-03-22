@@ -9,6 +9,9 @@ data class SettingsUiState(
     val saleMode: SaleMode = SaleMode.Instant,
     val hodlTargetInput: String = "",
     val oilPriceInput: String = "1.10",
+    val oilPriceIsAuto: Boolean = false,
+    val oilPriceLastFetched: String = "",  // "DD.MM.YYYY" oder ""
+    val oilPriceManuallyEdited: Boolean = false,
     val boilerEfficiencyInput: String = "85",
     val netzaufschlagInput: String = "9.85",
     val minerWaermeeffizienzInput: String = "85",

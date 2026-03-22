@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -93,10 +94,13 @@ fun SettingsScreen(
             // Heizungseinstellungen
             HeatingSection(
                 oilPriceInput = uiState.oilPriceInput,
+                oilPriceIsAuto = uiState.oilPriceIsAuto,
+                oilPriceLastFetched = uiState.oilPriceLastFetched,
                 boilerEfficiencyInput = uiState.boilerEfficiencyInput,
                 netzaufschlagInput = uiState.netzaufschlagInput,
                 minerWaermeeffizienzInput = uiState.minerWaermeeffizienzInput,
                 onOilPriceChanged = { viewModel.onOilPriceChanged(it) },
+                onRefreshOilPrice = { viewModel.refreshOilPrice() },
                 onBoilerEfficiencyChanged = { viewModel.onBoilerEfficiencyChanged(it) },
                 onNetzaufschlagChanged = { viewModel.onNetzaufschlagChanged(it) },
                 onMinerWaermeeffizienzChanged = { viewModel.onMinerWaermeeffizienzChanged(it) }
@@ -205,10 +209,13 @@ private fun SaleModeSection(
 @Composable
 private fun HeatingSection(
     oilPriceInput: String,
+    oilPriceIsAuto: Boolean,
+    oilPriceLastFetched: String,
     boilerEfficiencyInput: String,
     netzaufschlagInput: String,
     minerWaermeeffizienzInput: String,
     onOilPriceChanged: (String) -> Unit,
+    onRefreshOilPrice: () -> Unit,
     onBoilerEfficiencyChanged: (String) -> Unit,
     onNetzaufschlagChanged: (String) -> Unit,
     onMinerWaermeeffizienzChanged: (String) -> Unit
@@ -225,14 +232,32 @@ private fun HeatingSection(
                 singleLine = true,
                 supportingText = { Text("Netzgebühren + Steuern + Abgaben") }
             )
-            Text("Ölheizung", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Ölheizung", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                IconButton(onClick = onRefreshOilPrice) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Heizölpreis aktualisieren")
+                }
+            }
             OutlinedTextField(
                 value = oilPriceInput,
                 onValueChange = onOilPriceChanged,
                 label = { Text("Heizölpreis (€/Liter)") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
-                singleLine = true
+                singleLine = true,
+                supportingText = {
+                    if (oilPriceIsAuto && oilPriceLastFetched.isNotEmpty()) {
+                        Text("Automatisch geladen · Stand: $oilPriceLastFetched")
+                    } else if (oilPriceIsAuto) {
+                        Text("Automatisch geladen")
+                    } else {
+                        Text("Manuell eingegeben")
+                    }
+                }
             )
             OutlinedTextField(
                 value = boilerEfficiencyInput,

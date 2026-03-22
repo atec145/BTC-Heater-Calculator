@@ -3,6 +3,7 @@ package com.example.app.data.repository
 import android.content.SharedPreferences
 import com.example.app.data.local.dao.MinerConfigDao
 import com.example.app.data.local.entity.MinerConfigEntity
+import com.example.app.data.remote.HeizOelPriceRemoteDataSource
 import com.example.app.domain.model.MinerConfig
 import com.example.app.domain.model.SaleMode
 import com.example.app.domain.repository.MinerConfigRepository
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 class MinerConfigRepositoryImpl @Inject constructor(
     private val dao: MinerConfigDao,
-    private val prefs: SharedPreferences
+    private val prefs: SharedPreferences,
+    private val heizOelDataSource: HeizOelPriceRemoteDataSource
 ) : MinerConfigRepository {
 
     override fun getMiners(): Flow<List<MinerConfig>> =
@@ -75,6 +77,22 @@ class MinerConfigRepositoryImpl @Inject constructor(
         prefs.edit().putFloat(KEY_MINER_WAERMEEFFIZIENZ, efficiency.toFloat()).apply()
     }
 
+    override suspend fun fetchRemoteOilPrice(): Double? = heizOelDataSource.fetchCurrentPrice()
+
+    override suspend fun getOilPriceFetchedAt(): Long =
+        prefs.getLong(KEY_OIL_PRICE_FETCHED_AT, 0L)
+
+    override suspend fun saveOilPriceFetchedAt(epochSeconds: Long) {
+        prefs.edit().putLong(KEY_OIL_PRICE_FETCHED_AT, epochSeconds).apply()
+    }
+
+    override suspend fun isOilPriceManual(): Boolean =
+        prefs.getBoolean(KEY_OIL_PRICE_IS_MANUAL, false)
+
+    override suspend fun setOilPriceManual(manual: Boolean) {
+        prefs.edit().putBoolean(KEY_OIL_PRICE_IS_MANUAL, manual).apply()
+    }
+
     private fun MinerConfigEntity.toDomain() = MinerConfig(
         id = id, label = label, hashrateThs = hashrateThs, watt = watt, isActive = isActive
     )
@@ -90,5 +108,7 @@ class MinerConfigRepositoryImpl @Inject constructor(
         private const val KEY_BOILER_EFFICIENCY = "boiler_efficiency"
         private const val KEY_NETZAUFSCHLAG = "netzaufschlag_ct_kwh"
         private const val KEY_MINER_WAERMEEFFIZIENZ = "miner_waermeeffizienz"
+        private const val KEY_OIL_PRICE_FETCHED_AT = "oil_price_fetched_at"
+        private const val KEY_OIL_PRICE_IS_MANUAL = "oil_price_is_manual"
     }
 }
