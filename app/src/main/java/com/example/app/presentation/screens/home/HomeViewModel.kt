@@ -6,6 +6,7 @@ import com.example.app.domain.model.SaleMode
 import com.example.app.domain.repository.MarketDataRepository
 import com.example.app.domain.repository.MinerConfigRepository
 import com.example.app.domain.usecase.CalculateProfitabilityUseCase
+import com.example.app.domain.usecase.FetchOilPriceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val marketDataRepository: MarketDataRepository,
     private val minerConfigRepository: MinerConfigRepository,
-    private val calculateProfitability: CalculateProfitabilityUseCase
+    private val calculateProfitability: CalculateProfitabilityUseCase,
+    private val fetchOilPriceUseCase: FetchOilPriceUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -44,6 +46,8 @@ class HomeViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
+
+            fetchOilPriceUseCase()
 
             val saleMode = minerConfigRepository.getSaleMode()
             val boilerEfficiency = minerConfigRepository.getBoilerEfficiency()
