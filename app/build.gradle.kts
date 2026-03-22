@@ -28,10 +28,11 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = localProps.getProperty("KEYSTORE_PATH")?.let { rootProject.file(it) }
-            storePassword = localProps.getProperty("KEYSTORE_PASSWORD")
-            keyAlias = localProps.getProperty("KEY_ALIAS")
-            keyPassword = localProps.getProperty("KEY_PASSWORD")
+            val keystorePath = System.getenv("KEYSTORE_PATH") ?: localProps.getProperty("KEYSTORE_PATH")
+            storeFile = keystorePath?.let { file(it) }
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: localProps.getProperty("KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS") ?: localProps.getProperty("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: localProps.getProperty("KEY_PASSWORD")
         }
     }
 
