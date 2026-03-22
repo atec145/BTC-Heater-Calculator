@@ -18,7 +18,8 @@ class HeizOelPriceRemoteDataSource @Inject constructor(
             minDate = weekAgo,
             maxDate = today
         )
-        history.lastOrNull()?.price?.takeIf { it > 0 }
+        // API liefert Preis in €/100 Liter (z.B. 180.0 = 180€/100L = 1.80€/L)
+        history.lastOrNull()?.price?.let { if (it > 0) it / 100.0 else null }
     } catch (e: Exception) {
         null
     }
