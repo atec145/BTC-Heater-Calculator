@@ -13,10 +13,11 @@ Android app (Kotlin + Jetpack Compose) that shows whether running a Bitcoin mine
 ./gradlew assembleRelease        # Release build (minified)
 ./gradlew lint                   # Lint check (must pass before commit)
 ./gradlew test                   # Unit tests
+./gradlew test --tests "com.example.app.domain.usecase.CalculateProfitabilityUseCaseTest"  # Single test class
 ./gradlew connectedAndroidTest   # Instrumented tests (emulator required)
 ```
 
-No `google-services.json` is needed — Firebase was removed from this project.
+No `google-services.json` is needed — Firebase was removed from this project. The `.claude/rules/firebase.md` rule file is a leftover from the project template and does not apply here.
 
 ## Architecture
 
@@ -88,6 +89,14 @@ Feature tracking via GitHub Issues. Commit format: `feat(#12): description`.
 gh issue list --label "type:feature"
 gh issue view <number>
 ```
+
+## UI / Compose Conventions
+
+- All screens expose a single `UiState` data class with `isLoading`, `error`, and data fields
+- ViewModel exposes `StateFlow<UiState>`, collected via `collectAsState()` in Composables
+- All colors and typography defined in `presentation/theme/` — never hardcoded
+- Dynamic colors (Material You / `dynamicDarkColorScheme`) are intentionally disabled — use the static color scheme in `Color.kt`
+- `PriceBarChart` uses pure Canvas (no external chart library) — keep it that way
 
 ## Constraints
 
