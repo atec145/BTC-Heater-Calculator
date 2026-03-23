@@ -22,12 +22,15 @@ class MarketDataRepositoryImpl @Inject constructor(
 
     override suspend fun getDifficultyHistory(): Result<List<DifficultyEpoch>> = runCatching {
         val adjustments = mempoolSpaceApi.getDifficultyAdjustments()
-        adjustments.takeLast(10).map { entry ->
+        // API liefert Epochen von NEU nach ALT → erste 10 nehmen und umkehren für Chart
+        val count = adjustments.size().coerceAtMost(10)
+        (0 until count).map { i ->
+            val entry = adjustments[i].asJsonArray
             DifficultyEpoch(
-                timestamp = entry[0].toLong(),
-                blockHeight = entry[1].toInt(),
-                difficulty = entry[2]
+                timestamp = entry[0].asLong,
+                blockHeight = entry[1].asInt,
+                difficulty = entry[2].asDouble
             )
-        }
+        }.reversed()
     }
 }
