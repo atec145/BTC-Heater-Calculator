@@ -19,5 +19,8 @@ data class ProfitabilityResult(
     val co2KgAvoided: Double,
     // Vergleich: 10L Wasser um 10°C erwärmen
     val kostenWasser10L10K_Miner: Double,
-    val kostenWasser10L10K_Oel: Double
+    val kostenWasser10L10K_Oel: Double,
+    // Gesamtvorteil aktueller Stunde: BTC-Ertrag + Ölersparnis - Stromkosten
+    // Positiv = Miner günstiger als Öl, negativ = Öl günstiger
+    val nettovorteilProStunde: Double
 )

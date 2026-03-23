@@ -70,6 +70,12 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         val oilEurSaved = oilLiter * market.heizolPreisEurLiter
         val co2KgAvoided = oilLiter * 2.68
 
+        // Nettovorteil aktuelle Stunde: BTC-Ertrag/h + Ölersparnis/h - Stromkosten/h
+        // = delta × kWhPerHour (Break-Even-Delta in absoluten €/h)
+        val nettovorteilProStunde = btcPerHour * btcPrice +
+                kwhPerHour * minerWaermeeffizienz * heizölKostenEurKwh -
+                kwhPerHour * market.currentStrompreisEurKwh
+
         // Vergleich: 10L Wasser um 10°C erwärmen = 0,1163 kWh Wärmebedarf
         val waterHeatKwh = 10.0 * 4186.0 * 10.0 / 3_600_000.0
         val kostenWasserMiner = if (minerWaermeeffizienz > 0)
@@ -95,7 +101,8 @@ class CalculateProfitabilityUseCase @Inject constructor() {
                 oilEurSaved = oilEurSaved,
                 co2KgAvoided = co2KgAvoided,
                 kostenWasser10L10K_Miner = kostenWasserMiner,
-                kostenWasser10L10K_Oel = kostenWasserOel
+                kostenWasser10L10K_Oel = kostenWasserOel,
+                nettovorteilProStunde = nettovorteilProStunde
             )
         )
     }

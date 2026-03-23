@@ -209,6 +209,14 @@ private fun MetricsCard(result: ProfitabilityResult) {
             MetricRow("Erw. BTC/Tag", "%.8f BTC".format(result.expectedBtcPerDay))
             MetricRow("Erw. Ertrag/Tag", "%.2f €".format(result.expectedEurPerDay))
             HorizontalDivider()
+            val vorteilSign = if (result.nettovorteilProStunde >= 0) "+" else ""
+            val vorteilColor = if (result.nettovorteilProStunde >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
+            MetricRow(
+                label = "Nettovorteil/h (vs. Öl)",
+                value = "$vorteilSign%.3f €".format(result.nettovorteilProStunde),
+                valueColor = vorteilColor
+            )
+            HorizontalDivider()
             MetricRow("Ölheizung kostet", "%.1f ct/kWh".format(result.heizungskostenOelEurKwh * 100))
 
             if (result.profitableHoursToday > 0) {
@@ -252,10 +260,10 @@ private fun ChartCard(uiState: HomeUiState, result: ProfitabilityResult) {
 }
 
 @Composable
-private fun MetricRow(label: String, value: String) {
+private fun MetricRow(label: String, value: String, valueColor: Color = Color.Unspecified) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = valueColor)
     }
 }
 
