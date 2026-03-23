@@ -10,9 +10,7 @@ _Who will use this app? Describe their needs and pain points._
 
 | Priority | Feature | GitHub Issue | Status |
 |----------|---------|--------------|--------|
-| P0 (MVP) | _Feature 1_ | — | Planned |
-| P0 (MVP) | _Feature 2_ | — | Planned |
-| P1 | _Feature 3_ | — | Planned |
+| P1 | Difficulty-Chart Tab | #6 | Planned |
 
 ## Success Metrics
 _How will you measure success? (e.g., DAU, retention, Play Store rating)_
