@@ -208,19 +208,25 @@ private fun MetricsCard(result: ProfitabilityResult) {
             HorizontalDivider()
             MetricRow("Erw. BTC/Tag", "%.8f BTC".format(result.expectedBtcPerDay))
             MetricRow("Erw. Ertrag/Tag", "%.2f €".format(result.expectedEurPerDay))
-            MetricRow("Stromkosten/Tag", "%.2f €".format(result.stromkostenEurPerDay))
-            MetricRow("Nettoertrag/Tag", "%.2f €".format(result.expectedEurPerDay - result.stromkostenEurPerDay))
             HorizontalDivider()
             MetricRow("Ölheizung kostet", "%.1f ct/kWh".format(result.heizungskostenOelEurKwh * 100))
 
             if (result.profitableHoursToday > 0) {
                 HorizontalDivider()
+                Text("Heute (${result.profitableHoursToday} profitable Stunden)", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                MetricRow("Stromkosten", "%.2f €".format(result.stromkostenProfitableEur))
+                MetricRow("BTC-Ertrag", "%.2f €".format(result.eurProfitableHours))
+                MetricRow("Nettoertrag", "%.2f €".format(result.nettoProfitableEur))
+                HorizontalDivider()
                 Text("Heizleistung heute", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-                MetricRow("Profitable Stunden", "${result.profitableHoursToday} h")
                 MetricRow("Wärme in Puffer", "%.1f kWh".format(result.waermeEnergyKwhProfitable))
                 MetricRow("Heizöl ersetzt", "%.2f L".format(result.oilLiterAvoided))
                 MetricRow("Ersparnis vs. Öl", "%.2f €".format(result.oilEurSaved))
                 MetricRow("CO₂ eingespart", "%.2f kg".format(result.co2KgAvoided))
+                HorizontalDivider()
+                Text("10L Wasser +10°C erwärmen", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                MetricRow("Mit Miner (jetzt)", "%.3f €".format(result.kostenWasser10L10K_Miner))
+                MetricRow("Mit Ölheizung", "%.3f €".format(result.kostenWasser10L10K_Oel))
             }
         }
     }

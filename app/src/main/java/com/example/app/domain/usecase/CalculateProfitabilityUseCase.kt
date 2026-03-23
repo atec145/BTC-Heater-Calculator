@@ -52,18 +52,30 @@ class CalculateProfitabilityUseCase @Inject constructor() {
         val breakEven = if (kwhPerDay > 0) (eurPerDay / kwhPerDay) + heizölKostenEurKwh else 0.0
         val delta = breakEven - market.currentStrompreisEurKwh
 
-        // Profitable Stunden: Stunden in denen Strompreis < Break-Even
-        val profitableHours = market.hourlyPrices.count { it.priceEurKwh < breakEven }
+        val kwhPerHour = totalWatt / 1000.0
+        val btcPerHour = btcPerDay / 24.0
+
+        // Profitable Stunden mit echten Stundenpreisen
+        val profitableHoursList = market.hourlyPrices.filter { it.priceEurKwh < breakEven }
+        val profitableHours = profitableHoursList.size
+        val stromkostenProfitable = profitableHoursList.sumOf { kwhPerHour * it.priceEurKwh }
+        val eurProfitable = btcPerHour * profitableHours * btcPrice
+        val nettoProfitable = eurProfitable - stromkostenProfitable
 
         // Thermische Energie nur für profitable Stunden
-        val kwhPerHour = totalWatt / 1000.0
         val waermeEnergyKwh = kwhPerHour * profitableHours * minerWaermeeffizienz
 
-        // Heizöl-Äquivalent: Wärme die der Miner liefert, würde X Liter Öl ersetzen
-        // Öl hat 10 kWh/L × Kessenwirkungsgrad → effektive Wärme pro Liter
+        // Heizöl-Äquivalent
         val oilLiter = if (boilerEfficiency > 0) waermeEnergyKwh / (10.0 * boilerEfficiency) else 0.0
         val oilEurSaved = oilLiter * market.heizolPreisEurLiter
         val co2KgAvoided = oilLiter * 2.68
+
+        // Vergleich: 10L Wasser um 10°C erwärmen = 0,1163 kWh Wärmebedarf
+        val waterHeatKwh = 10.0 * 4186.0 * 10.0 / 3_600_000.0
+        val kostenWasserMiner = if (minerWaermeeffizienz > 0)
+            waterHeatKwh / minerWaermeeffizienz * market.currentStrompreisEurKwh else 0.0
+        val kostenWasserOel = if (boilerEfficiency > 0)
+            waterHeatKwh / (10.0 * boilerEfficiency) * market.heizolPreisEurLiter else 0.0
 
         return Result.success(
             ProfitabilityResult(
@@ -73,13 +85,17 @@ class CalculateProfitabilityUseCase @Inject constructor() {
                 deltaEurKwh = delta,
                 expectedBtcPerDay = btcPerDay,
                 expectedEurPerDay = eurPerDay,
-                stromkostenEurPerDay = stromkostenPerDay,
                 heizungskostenOelEurKwh = heizölKostenEurKwh,
                 profitableHoursToday = profitableHours,
+                stromkostenProfitableEur = stromkostenProfitable,
+                eurProfitableHours = eurProfitable,
+                nettoProfitableEur = nettoProfitable,
                 waermeEnergyKwhProfitable = waermeEnergyKwh,
                 oilLiterAvoided = oilLiter,
                 oilEurSaved = oilEurSaved,
-                co2KgAvoided = co2KgAvoided
+                co2KgAvoided = co2KgAvoided,
+                kostenWasser10L10K_Miner = kostenWasserMiner,
+                kostenWasser10L10K_Oel = kostenWasserOel
             )
         )
     }

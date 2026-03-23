@@ -4,15 +4,20 @@ data class ProfitabilityResult(
     val isWorthIt: Boolean,
     val breakEvenStrompreisEurKwh: Double,
     val currentStrompreisEurKwh: Double,
-    val deltaEurKwh: Double,           // positiv = aktuell günstiger als Schwelle
-    val expectedBtcPerDay: Double,
-    val expectedEurPerDay: Double,
-    val stromkostenEurPerDay: Double,
+    val deltaEurKwh: Double,               // positiv = aktuell günstiger als Schwelle
+    val expectedBtcPerDay: Double,         // theoretisch 24h
+    val expectedEurPerDay: Double,         // theoretisch 24h
     val heizungskostenOelEurKwh: Double,
     // Nur für profitable Stunden (strompreis < breakEven)
     val profitableHoursToday: Int,
-    val waermeEnergyKwhProfitable: Double, // thermische Energie die in den Puffer geht
-    val oilLiterAvoided: Double,           // Liter Heizöl die ersetzt werden
-    val oilEurSaved: Double,               // Ersparnis vs. Ölheizung
-    val co2KgAvoided: Double               // CO₂-Einsparung (2,68 kg/L Heizöl)
+    val stromkostenProfitableEur: Double,  // tatsächliche Stromkosten in profitablen Stunden
+    val eurProfitableHours: Double,        // BTC-Ertrag in profitablen Stunden
+    val nettoProfitableEur: Double,        // Nettoertrag in profitablen Stunden
+    val waermeEnergyKwhProfitable: Double,
+    val oilLiterAvoided: Double,
+    val oilEurSaved: Double,
+    val co2KgAvoided: Double,
+    // Vergleich: 10L Wasser um 10°C erwärmen
+    val kostenWasser10L10K_Miner: Double,
+    val kostenWasser10L10K_Oel: Double
 )

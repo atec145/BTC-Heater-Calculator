@@ -117,7 +117,6 @@ class CalculateProfitabilityUseCaseTest {
         val dual = useCase(listOf(testMiner, miner2), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
 
         assertEquals(single.expectedBtcPerDay * 2, dual.expectedBtcPerDay, 0.0000001)
-        assertEquals(single.stromkostenEurPerDay * 2, dual.stromkostenEurPerDay, 0.001)
     }
 
     // --- Neue Tests: profitable Stunden & Wärme-Berechnung ---
@@ -202,5 +201,31 @@ class CalculateProfitabilityUseCaseTest {
         val result = useCase(listOf(testMiner), testMarket.copy(hourlyPrices = emptyList()), SaleMode.Instant, 0.85, 0.85).getOrThrow()
         assertEquals(0, result.profitableHoursToday)
         assertEquals(0.0, result.waermeEnergyKwhProfitable, 0.001)
+    }
+
+    @Test
+    fun `stromkosten profitable uses actual hourly prices`() {
+        // Stunde 1: 0.05 €/kWh, Stunde 2: 0.06 €/kWh — beide profitable
+        // Kosten = 3.25 kW × (0.05 + 0.06) = 0.3575 €
+        val prices = listOf(
+            HourlyPrice(epochStart = 0, priceEurKwh = 0.05),
+            HourlyPrice(epochStart = 3600, priceEurKwh = 0.06)
+        )
+        val result = useCase(listOf(testMiner), testMarket.copy(hourlyPrices = prices), SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        val expected = (3250.0 / 1000.0) * (0.05 + 0.06)
+        assertEquals(expected, result.stromkostenProfitableEur, 0.001)
+    }
+
+    @Test
+    fun `wasser vergleich physik korrekt`() {
+        // Q = 10 kg × 4186 J/kg/K × 10 K = 418600 J = 0.1163 kWh
+        // Miner: 0.1163 / 0.85 × 0.10 = 0.01368 €
+        // Öl:    0.1163 / (10 × 0.85) × 1.10 = 0.01505 €
+        val result = useCase(listOf(testMiner), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        val waterKwh = 10.0 * 4186.0 * 10.0 / 3_600_000.0
+        val expectedMiner = waterKwh / 0.85 * 0.10
+        val expectedOel = waterKwh / (10.0 * 0.85) * 1.10
+        assertEquals(expectedMiner, result.kostenWasser10L10K_Miner, 0.0001)
+        assertEquals(expectedOel, result.kostenWasser10L10K_Oel, 0.0001)
     }
 }
