@@ -13,11 +13,11 @@ val localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) localProps.load(localPropsFile.inputStream())
 
 android {
-    namespace = "com.example.app"
+    namespace = "atec.btcheater.calculator"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.app"
+        applicationId = "atec.btcheater.calculator"
         minSdk = 24
         targetSdk = 35
         versionCode = 6
