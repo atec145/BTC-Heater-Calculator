@@ -64,7 +64,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("BTC-Heizung") },
+                title = { Text("BTC-Heizung v1.3.2") },
                 actions = {
                     if (uiState.lastUpdated.isNotEmpty()) {
                         Text(
