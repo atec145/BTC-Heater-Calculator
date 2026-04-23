@@ -20,8 +20,8 @@ android {
         applicationId = "atec.btcheater.calculator"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.3.3"
+        versionCode = 9
+        versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
