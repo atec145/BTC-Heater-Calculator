@@ -2,6 +2,7 @@ package atec.btcheater.calculator.domain.usecase
 
 import atec.btcheater.calculator.domain.model.MarketData
 import atec.btcheater.calculator.domain.model.MinerConfig
+import atec.btcheater.calculator.domain.model.MinerYieldPerKwh
 import atec.btcheater.calculator.domain.model.ProfitabilityResult
 import atec.btcheater.calculator.domain.model.SaleMode
 import javax.inject.Inject
@@ -76,6 +77,18 @@ class CalculateProfitabilityUseCase @Inject constructor() {
                 kwhPerHour * minerWaermeeffizienz * heizölKostenEurKwh -
                 kwhPerHour * market.currentStrompreisEurKwh
 
+        // Sats & € pro kWh je Miner — immer Live-BTC-Kurs (market.btcPriceEur)
+        val liveBtcPrice = market.btcPriceEur
+        val perMinerYields = activeMiners.mapNotNull { miner ->
+            val kwhPerDayMiner = (miner.watt / 1000.0) * 24.0
+            if (kwhPerDayMiner <= 0 || miner.hashrateThs <= 0) return@mapNotNull null
+            val hashrateHsMiner = miner.hashrateThs * 1_000_000_000_000.0
+            val btcPerDayMiner = (hashrateHsMiner * 86400.0) / (market.networkDifficulty * 4_294_967_296.0) * 3.125
+            val sats = ((btcPerDayMiner * 100_000_000.0) / kwhPerDayMiner).toLong()
+            val eur = sats * (liveBtcPrice / 100_000_000.0)
+            MinerYieldPerKwh(minerId = miner.id, label = miner.label, satsPerKwh = sats, eurPerKwh = eur)
+        }
+
         // Vergleich: 10L Wasser um 10°C erwärmen = 0,1163 kWh Wärmebedarf
         val waterHeatKwh = 10.0 * 4186.0 * 10.0 / 3_600_000.0
         val kostenWasserMiner = if (minerWaermeeffizienz > 0)
@@ -102,7 +115,8 @@ class CalculateProfitabilityUseCase @Inject constructor() {
                 co2KgAvoided = co2KgAvoided,
                 kostenWasser10L10K_Miner = kostenWasserMiner,
                 kostenWasser10L10K_Oel = kostenWasserOel,
-                nettovorteilProStunde = nettovorteilProStunde
+                nettovorteilProStunde = nettovorteilProStunde,
+                perMinerYields = perMinerYields
             )
         )
     }

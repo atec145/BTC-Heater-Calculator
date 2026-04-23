@@ -22,5 +22,7 @@ data class ProfitabilityResult(
     val kostenWasser10L10K_Oel: Double,
     // Gesamtvorteil aktueller Stunde: BTC-Ertrag + Ölersparnis - Stromkosten
     // Positiv = Miner günstiger als Öl, negativ = Öl günstiger
-    val nettovorteilProStunde: Double
+    val nettovorteilProStunde: Double,
+    // Ertrag pro kWh je Miner (immer Live-BTC-Kurs)
+    val perMinerYields: List<MinerYieldPerKwh>
 )

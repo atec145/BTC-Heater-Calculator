@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import atec.btcheater.calculator.domain.model.MinerYieldPerKwh
 import atec.btcheater.calculator.domain.model.ProfitabilityResult
 import atec.btcheater.calculator.domain.model.SaleMode
 import atec.btcheater.calculator.presentation.components.PriceBarChart
@@ -174,6 +175,11 @@ private fun DashboardContent(uiState: HomeUiState, modifier: Modifier = Modifier
             ChartCard(uiState, result)
         }
 
+        // Ertrag pro kWh je Miner
+        if (result.perMinerYields.isNotEmpty()) {
+            PerMinerYieldCard(result.perMinerYields)
+        }
+
         // Kennzahlen
         MetricsCard(result)
     }
@@ -195,6 +201,27 @@ private fun DecisionCard(result: ProfitabilityResult) {
                 LabelValue("Schwelle", "%.1f ct/kWh".format(result.breakEvenStrompreisEurKwh * 100), Color.White)
                 val deltaSign = if (result.deltaEurKwh >= 0) "+" else ""
                 LabelValue("Delta", "$deltaSign%.1f ct/kWh".format(result.deltaEurKwh * 100), Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PerMinerYieldCard(yields: List<MinerYieldPerKwh>) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Ertrag pro kWh (Live-Kurs)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            HorizontalDivider()
+            yields.forEach { miner ->
+                Text(miner.label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                MetricRow("Sats/kWh", "${miner.satsPerKwh} sat/kWh")
+                val eurFormatted = if (miner.eurPerKwh < 0.001) {
+                    "%.4f €/kWh".format(miner.eurPerKwh)
+                } else {
+                    "%.3f €/kWh".format(miner.eurPerKwh)
+                }
+                MetricRow("Euro/kWh", eurFormatted)
+                if (yields.last() != miner) HorizontalDivider()
             }
         }
     }

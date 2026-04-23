@@ -217,6 +217,42 @@ class CalculateProfitabilityUseCaseTest {
     }
 
     @Test
+    fun `perMinerYields contains one entry per active miner`() {
+        val miner2 = testMiner.copy(id = 2, label = "S19j", hashrateThs = 90.0, watt = 3050.0)
+        val result = useCase(listOf(testMiner, miner2), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        assertEquals(2, result.perMinerYields.size)
+        assertEquals(testMiner.id, result.perMinerYields[0].minerId)
+        assertEquals(miner2.id, result.perMinerYields[1].minerId)
+    }
+
+    @Test
+    fun `perMinerYields always uses live btc price regardless of hodl mode`() {
+        val hodlTarget = 200_000.0
+        val instantResult = useCase(listOf(testMiner), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        val hodlResult = useCase(listOf(testMiner), testMarket, SaleMode.Hodl(hodlTarget), 0.85, 0.85).getOrThrow()
+        assertEquals(instantResult.perMinerYields[0].satsPerKwh, hodlResult.perMinerYields[0].satsPerKwh)
+        assertEquals(instantResult.perMinerYields[0].eurPerKwh, hodlResult.perMinerYields[0].eurPerKwh, 0.0001)
+    }
+
+    @Test
+    fun `perMinerYields sats per kwh formula is correct`() {
+        val result = useCase(listOf(testMiner), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        val kwhPerDay = (testMiner.watt / 1000.0) * 24.0
+        val hashrateHs = testMiner.hashrateThs * 1_000_000_000_000.0
+        val btcPerDay = (hashrateHs * 86400.0) / (testMarket.networkDifficulty * 4_294_967_296.0) * 3.125
+        val expectedSats = ((btcPerDay * 100_000_000.0) / kwhPerDay).toLong()
+        assertEquals(expectedSats, result.perMinerYields[0].satsPerKwh)
+    }
+
+    @Test
+    fun `perMinerYields inactive miner is excluded`() {
+        val inactive = testMiner.copy(id = 2, isActive = false)
+        val result = useCase(listOf(testMiner, inactive), testMarket, SaleMode.Instant, 0.85, 0.85).getOrThrow()
+        assertEquals(1, result.perMinerYields.size)
+        assertEquals(testMiner.id, result.perMinerYields[0].minerId)
+    }
+
+    @Test
     fun `wasser vergleich physik korrekt`() {
         // Q = 10 kg × 4186 J/kg/K × 10 K = 418600 J = 0.1163 kWh
         // Miner: 0.1163 / 0.85 × 0.10 = 0.01368 €
